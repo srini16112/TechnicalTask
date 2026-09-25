@@ -159,8 +159,16 @@ ALTER TABLE home_services ADD COLUMN IF NOT EXISTS total_reviews INTEGER DEFAULT
 ALTER TABLE home_services ADD COLUMN IF NOT EXISTS images TEXT[];
 ALTER TABLE home_services ADD COLUMN IF NOT EXISTS provider_phone VARCHAR(15);
 ALTER TABLE home_services ADD COLUMN IF NOT EXISTS provider_email VARCHAR(255);
-ALTER TABLE home_services ALTER COLUMN phone DROP NOT NULL;
-ALTER TABLE home_services ALTER COLUMN service_area DROP NOT NULL;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'home_services' AND column_name = 'phone') THEN
+    ALTER TABLE home_services ALTER COLUMN phone DROP NOT NULL;
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'home_services' AND column_name = 'service_area') THEN
+    ALTER TABLE home_services ALTER COLUMN service_area DROP NOT NULL;
+  END IF;
+END $$;
+
 
 -- ============================================================
 -- INDEXES

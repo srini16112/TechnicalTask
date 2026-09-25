@@ -2,11 +2,14 @@
 const { Pool } = require('pg');
 const env = require('./env');
 
+const isRemote = env.db.host && env.db.host !== 'localhost' && env.db.host !== '127.0.0.1';
+const useSSL = process.env.DB_SSL === 'true' || isRemote || env.nodeEnv === 'production';
+
 const pool = new Pool({
   ...(env.db.url
     ? {
         connectionString: env.db.url,
-        ssl: env.nodeEnv === 'production' ? { rejectUnauthorized: false } : undefined,
+        ssl: useSSL ? { rejectUnauthorized: false } : undefined,
       }
     : {
         host:     env.db.host,
@@ -14,10 +17,11 @@ const pool = new Pool({
         database: env.db.name,
         user:     env.db.user,
         password: env.db.password,
+        ssl:      useSSL ? { rejectUnauthorized: false } : undefined,
       }),
-  max: 20,
+  max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
 pool.on('error', (err) => {
